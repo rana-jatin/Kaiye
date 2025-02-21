@@ -5,7 +5,7 @@ import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 # Retrieve Gemini API key from environment variable (Colab-friendly)
-gemini_api_key = os.getenv("GEMINI_API_KEY")
+gemini_api_key = st.secrets['gemini_key']
 
 # If no key is found, stop the app
 if not gemini_api_key:
