@@ -61,27 +61,37 @@ class KanyeChatbot:
         return hashlib.md5(session_info.encode()).hexdigest()
 
     def load_chat_history(self) -> List[Dict]:
-        """Load chat history from file"""
+        """Load chat history from text file"""
         try:
-            chat_id = self.get_chat_id()
-            history_file = f"chat_history_{chat_id}.json"
+            history_file = "chat_history.txt"
+            messages = [{"role": "assistant", "content": INITIAL_MESSAGE}]
             
             if os.path.exists(history_file):
-                with open(history_file, 'r') as f:
-                    return json.load(f)
+                with open(history_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    messages = []
+                    for line in lines:
+                        if line.strip():  # Skip empty lines
+                            try:
+                                role, content = line.strip().split(": ", 1)
+                                messages.append({"role": role.lower(), "content": content})
+                            except ValueError:
+                                continue  # Skip malformed lines
+            return messages
+                    
         except Exception as e:
             logger.error(f"Error loading chat history: {str(e)}")
-        
-        return [{"role": "assistant", "content": INITIAL_MESSAGE}]
+            return [{"role": "assistant", "content": INITIAL_MESSAGE}]
 
     def save_chat_history(self) -> None:
-        """Save chat history to file"""
+        """Save chat history to text file"""
         try:
-            chat_id = self.get_chat_id()
-            history_file = f"chat_history_{chat_id}.json"
+            history_file = "chat_history.txt"
             
-            with open(history_file, 'w') as f:
-                json.dump(st.session_state.messages, f)
+            with open(history_file, 'w', encoding='utf-8') as f:
+                for message in st.session_state.messages:
+                    # Format each message as "Role: Content"
+                    f.write(f"{message['role'].capitalize()}: {message['content']}\n\n")
         except Exception as e:
             logger.error(f"Error saving chat history: {str(e)}")
 
