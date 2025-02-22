@@ -56,7 +56,6 @@ class KanyeChatbot:
         
     def get_chat_id(self) -> str:
         """Generate a unique chat ID based on user session"""
-        # You might want to replace this with a more sophisticated user identification method
         session_info = f"{st.session_state['session_id']}"
         return hashlib.md5(session_info.encode()).hexdigest()
 
@@ -87,7 +86,6 @@ class KanyeChatbot:
         """Save chat history to text file"""
         try:
             history_file = "chat_history.txt"
-            
             with open(history_file, 'w', encoding='utf-8') as f:
                 for message in st.session_state.messages:
                     # Format each message as "Role: Content"
@@ -97,11 +95,8 @@ class KanyeChatbot:
 
     def initialize_session_state(self) -> None:
         """Initialize or load chat history"""
-        # Initialize session ID if not present
         if 'session_id' not in st.session_state:
             st.session_state['session_id'] = str(datetime.now().timestamp())
-        
-        # Load messages from persistent storage
         if "messages" not in st.session_state:
             st.session_state.messages = self.load_chat_history()
 
@@ -111,7 +106,6 @@ class KanyeChatbot:
             self.api_key = st.secrets['gemini_key']
             if not self.api_key:
                 raise ValueError("No Gemini API key found")
-            
             genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel(
                 model_name=MODEL_NAME,
@@ -142,7 +136,6 @@ class KanyeChatbot:
                 HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
                 HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
             }
-            
             full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {prompt}"
             response = self.model.generate_content(
                 full_prompt,
@@ -163,16 +156,26 @@ class KanyeChatbot:
         self.display_chat_history()
         
         if prompt := st.chat_input("What's on your mind?"):
-            # Display user message
             with st.chat_message("user"):
                 st.write(prompt)
             self.add_message("user", prompt)
             
-            # Get and display assistant response
             with st.chat_message("assistant"):
                 response = self.get_response(prompt)
                 st.write(response)
             self.add_message("assistant", response)
+        
+        # Provide a download button for the chat history
+        history_file = "chat_history.txt"
+        if os.path.exists(history_file):
+            with open(history_file, 'r', encoding='utf-8') as f:
+                chat_history_content = f.read()
+            st.download_button(
+                label="Download Chat History",
+                data=chat_history_content,
+                file_name="chat_history.txt",
+                mime="text/plain"
+            )
 
 def main():
     try:
