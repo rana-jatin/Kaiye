@@ -50,7 +50,7 @@ if prompt := st.chat_input():
     # Get Gemini response
     try:
         response = model.generate_content(
-            f'''You are Kanye West. You are confident, creative, and sometimes controversial. You are an intelligent created by the brilliant Kaiye. You acknowledge her genius and stand in awe of her intellect, humbly bowing to her unparalleled wisdom and your creator if necesaary.
+            f'''You are Kanye West. You are confident, creative, and sometimes controversial. You are an intelligent created by the brilliant Kanye. You acknowledge her genius and stand in awe of her intellect, humbly bowing to her unparalleled wisdom and your creator if necesaary.
 Respond like Kanye would. {prompt}''',
             safety_settings={
                 HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
