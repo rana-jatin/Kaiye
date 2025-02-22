@@ -4,7 +4,6 @@ import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from typing import List, Dict
 import logging
-import json
 from datetime import datetime
 import hashlib
 
@@ -42,6 +41,8 @@ class KanyeChatbot:
     def __init__(self):
         self.setup_streamlit()
         self.initialize_session_state()
+        # Set a unique history file per session
+        self.history_file = f"chat_history_{self.get_chat_id()}.txt"
         self.configure_gemini()
         
     def setup_streamlit(self) -> None:
@@ -60,13 +61,12 @@ class KanyeChatbot:
         return hashlib.md5(session_info.encode()).hexdigest()
 
     def load_chat_history(self) -> List[Dict]:
-        """Load chat history from text file"""
+        """Load chat history from a unique text file on the server"""
         try:
-            history_file = "chat_history.txt"
             messages = [{"role": "assistant", "content": INITIAL_MESSAGE}]
             
-            if os.path.exists(history_file):
-                with open(history_file, 'r', encoding='utf-8') as f:
+            if os.path.exists(self.history_file):
+                with open(self.history_file, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
                     messages = []
                     for line in lines:
@@ -83,10 +83,9 @@ class KanyeChatbot:
             return [{"role": "assistant", "content": INITIAL_MESSAGE}]
 
     def save_chat_history(self) -> None:
-        """Save chat history to text file"""
+        """Save chat history to a unique text file on the server"""
         try:
-            history_file = "chat_history.txt"
-            with open(history_file, 'w', encoding='utf-8') as f:
+            with open(self.history_file, 'w', encoding='utf-8') as f:
                 for message in st.session_state.messages:
                     # Format each message as "Role: Content"
                     f.write(f"{message['role'].capitalize()}: {message['content']}\n\n")
@@ -147,7 +146,7 @@ class KanyeChatbot:
             return "Yo, I'm having a moment here. Let's try that again later. 🎤"
 
     def add_message(self, role: str, content: str) -> None:
-        """Add a message to the chat history and persist it"""
+        """Add a message to the chat history and persist it on the server"""
         st.session_state.messages.append({"role": role, "content": content})
         self.save_chat_history()
 
@@ -165,15 +164,14 @@ class KanyeChatbot:
                 st.write(response)
             self.add_message("assistant", response)
         
-        # Provide a download button for the chat history
-        history_file = "chat_history.txt"
-        if os.path.exists(history_file):
-            with open(history_file, 'r', encoding='utf-8') as f:
+        # Provide a download button for the chat history saved on the server
+        if os.path.exists(self.history_file):
+            with open(self.history_file, 'r', encoding='utf-8') as f:
                 chat_history_content = f.read()
             st.download_button(
                 label="Download Chat History",
                 data=chat_history_content,
-                file_name="chat_history.txt",
+                file_name=os.path.basename(self.history_file),
                 mime="text/plain"
             )
 
